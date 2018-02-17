@@ -1,2 +1,7 @@
-FROM nginx:1.7
-COPY nginx.conf /etc/nginx/nginx.conf
+FROM alpine:3.7
+RUN apk --no-cache add nginx openssl
+RUN mkdir -p /etc/nginx/external
+ADD nginx.conf /etc/nginx/nginx.conf
+ADD entrypoint.sh /docker-entrypoint
+ENTRYPOINT ["/docker-entrypoint"]
+CMD ["nginx"]

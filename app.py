@@ -6,7 +6,8 @@ from uuid import uuid4
 from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from flask import Blueprint, Flask, current_app, jsonify, request
+from flask import Blueprint, Flask, Response, current_app, jsonify, request
+from flask_tinyauth import api
 import jwt
 
 
@@ -68,29 +69,53 @@ def get_token_for_request():
         response.status_code = 400
         return response
 
-    if service != current_app.config['SERVICE']:
+    if service != current_app.config['TINYAUTH_SERVICE']:
         response = jsonify({'error': 'service parameter incorrect'})
         response.status_code = 400
         return response
 
-    scopes = get_scopes()
-
-    # FIXME: Do access test here
-
     now = datetime.utcnow()
-    expires = now + timedelta(seconds=current_app.config['EXPIRES_IN'])
+
+    permit = {}
+    for scope in get_scopes():
+        for action in scope['actions']:
+            res = permit.setdefault(':'.join((service, action)), set())
+            res.add(api.format_arn(scope['type'], scope['name']))
+    for key in permit:
+        permit[key] = list(permit[key])
+
+    context = {
+        'SourceIp': request.remote_addr,
+        'RequestDateTime': now.isoformat(),
+    }
+
+    response = api.call('authorize-by-token', {
+        'permit': permit,
+        'headers': request.headers.to_wsgi_list(),
+        'context': context,
+    })
+
+    allowed = {}
+    for action, resources in response['Permitted'].items():
+        action = action.split(':', 1)[1]
+        for resource in resources:
+            resource = resource.rsplit(':', 1)[1]
+            allowed.setdefault(resource, []).append(action)
 
     access = []
-    for scope in scopes:
+    for resource, actions in allowed.items():
+        resource_type, resource = resource.split('/', 1)
         access.append({
-            'type': scope['type'],
-            'name': scope['name'],
-            'actions': scope['actions'],
+            'type': resource_type,
+            'name': resource,
+            'actions': actions,
         })
+
+    expires = now + timedelta(seconds=current_app.config['EXPIRES_IN'])
 
     token_payload = {
         'iss' : app.config['ISSUER'],
-        'sub' : '',
+        'sub' : response.get('Identity', ''),
         'aud' : service,
         'exp' : expires,
         'nbf' : now,
@@ -121,8 +146,14 @@ def create_app():
     app = Flask(__name__)
 
     app.config['EXPIRES_IN'] = 3600
-    app.config['SERVICE'] = 'docker-registry'
     app.config['ISSUER'] = 'tinyauth'
+
+    app.config['TINYAUTH_SERVICE'] = 'docker-registry'
+    app.config['TINYAUTH_REGION'] = 'eu-west-1'
+    app.config['TINYAUTH_PARTITION'] = 'primary'
+    app.config['TINYAUTH_ENDPOINT'] = 'http://tinyauth:5000/'
+    app.config['TINYAUTH_ACCESS_KEY_ID'] = 'gatekeeper'
+    app.config['TINYAUTH_SECRET_ACCESS_KEY'] = 'keymaster'
 
     app.register_blueprint(auth_blueprint)
 

@@ -3,8 +3,28 @@ version: '2'
 volumes:
   registry: {}
   certificates: {}
+  postgres_data: {}
 
 services:
+  postgres:
+    image: postgres:9.4
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=tinyauth
+      - POSTGRES_PASSWORD=tinyauth
+      - POSTGRES_DB=tinyauth
+
+  tinyauth:
+    image: tinyauth/tinyauth:dev
+    depends_on:
+      - postgres
+    environment:
+      - POSTGRES_USER=tinyauth
+      - POSTGRES_PASSWORD=tinyauth
+    ports:
+      - 8000:8000
+
   registry:
     build:
       context: docker/registry

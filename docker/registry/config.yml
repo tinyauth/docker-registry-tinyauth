@@ -10,7 +10,7 @@ storage:
 
 auth:
   token:
-    realm: http://localhost/auth/token
+    realm: https://localhost/auth/token
     service: docker-registry
     issuer: tinyauth
     rootcertbundle: /certificates/server.pem
