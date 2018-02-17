@@ -1,0 +1,20 @@
+version: 0.1
+
+log:
+  level: info
+
+
+storage:
+    filesystem:
+        rootdirectory: /registry
+
+auth:
+  token:
+    realm: http://localhost/auth/token
+    service: docker-registry
+    issuer: tinyauth
+    rootcertbundle: /certificates/server.pem
+
+
+http:
+    addr: 0.0.0.0:5000

@@ -1,0 +1,4 @@
+Flask
+Flask-tinyauth
+cryptography
+PyJWT

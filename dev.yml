@@ -1,0 +1,27 @@
+version: '2'
+
+volumes:
+  registry: {}
+  certificates: {}
+
+services:
+  registry:
+    build:
+      context: docker/registry
+    volumes:
+      - registry:/registry
+      - certificates:/certificates
+
+  auth:
+    build:
+      context: .
+      dockerfile: docker/auth/Dockerfile
+    volumes:
+      - certificates:/certificates
+
+  nginx:
+    build:
+      context: docker/nginx
+    ports:
+      - "443:443"
+      - "80:80"
