@@ -6,7 +6,7 @@ from flask import Blueprint, Flask, Response, current_app, jsonify, request
 from flask_tinyauth import api
 import jwt
 
-from docker_registry_tinyauth.pki import get_certificate, get_private_key
+from docker_registry_tinyauth.pki import serialize_cert, get_certificate, get_private_key
 from docker_registry_tinyauth.scope import get_scopes
 
 
@@ -67,7 +67,7 @@ def get_token_for_request():
     expires = now + timedelta(seconds=current_app.config['EXPIRES_IN'])
 
     token_payload = {
-        'iss' : app.config['ISSUER'],
+        'iss' : current_app.config['ISSUER'],
         'sub' : response.get('Identity', ''),
         'aud' : service,
         'exp' : expires,
@@ -88,7 +88,7 @@ def get_token_for_request():
             },
             algorithm='RS256',
         ).decode('utf-8'),
-        'expires_in' : app.config['EXPIRES_IN'],
+        'expires_in' : current_app.config['EXPIRES_IN'],
         'issued_at' : now.isoformat() + 'Z'
     }
 
