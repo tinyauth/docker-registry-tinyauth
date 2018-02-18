@@ -11,9 +11,10 @@ FROM alpine:3.7
 RUN apk add --no-cache python3 openssl
 
 COPY --from=builder /app /app
-COPY app.py /app/src/app.py
+COPY docker_registry_tinyauth /app/src/docker_registry_tinyauth
 
-ENV FLASK_APP=/app/src/app.py
+ENV FLASK_APP=/app/src/docker_registry_tinyauth/app.py
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH $PYTHONPATH:/app/src
 
 CMD ["/app/bin/flask", "run", "--host=0.0.0.0"]

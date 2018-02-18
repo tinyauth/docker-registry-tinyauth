@@ -1,66 +1,19 @@
 from datetime import datetime, timedelta
 import json
-import re
 from uuid import uuid4
 
-from cryptography.x509 import load_pem_x509_certificate
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
 from flask import Blueprint, Flask, Response, current_app, jsonify, request
 from flask_tinyauth import api
 import jwt
 
-
-SCOPE_RE = re.compile(r'^(?P<type>repository):(?P<name>[^:]+)(?::(?P<tag>[^:]))?:(?P<actions>.*)$')
-
-auth_blueprint = Blueprint('auth', __name__)
+from docker_registry_tinyauth.pki import get_certificate, get_private_key
+from docker_registry_tinyauth.scope import get_scopes
 
 
-def parse_scope(scope):
-    parsed = SCOPE_RE.match(scope.strip().lower())
-    return {
-        'type': parsed.group('type'),
-        'name': parsed.group('name'),
-        'tag': parsed.group('tag'),
-        'actions': parsed.group('actions').split(','),
-    }
+token_blueprint = Blueprint('auth', __name__)
 
 
-def get_scopes():
-    scopes = list()
-    for s in request.args.getlist('scope'):
-        scopes.append(parse_scope(s))
-    return scopes
-
-
-def get_certificate():
-    with open('/certificates/server.pem', 'rb') as fp:
-        return load_pem_x509_certificate(
-            fp.read(),
-            default_backend()
-        )
-
-
-def serialize_cert(cert):
-    return ''.join(
-        cert.public_bytes(serialization.Encoding.PEM).\
-            decode('utf-8').\
-            strip().\
-            split('\n')[1:-1]
-    )
-
-
-def get_private_key():
-    with open('/certificates/server.key', 'rb') as fp:
-        private_key = serialization.load_pem_private_key(
-            fp.read(),
-            password=None,
-            backend=default_backend()
-        )
-        return private_key
-
-
-@auth_blueprint.route('/token')
+@token_blueprint.route('/token')
 def get_token_for_request():
     try:
         service = request.args['service']
@@ -140,24 +93,3 @@ def get_token_for_request():
     }
 
     return jsonify(response)
-
-
-def create_app():
-    app = Flask(__name__)
-
-    app.config['EXPIRES_IN'] = 3600
-    app.config['ISSUER'] = 'tinyauth'
-
-    app.config['TINYAUTH_SERVICE'] = 'docker-registry'
-    app.config['TINYAUTH_REGION'] = 'eu-west-1'
-    app.config['TINYAUTH_PARTITION'] = 'primary'
-    app.config['TINYAUTH_ENDPOINT'] = 'http://tinyauth:5000/'
-    app.config['TINYAUTH_ACCESS_KEY_ID'] = 'gatekeeper'
-    app.config['TINYAUTH_SECRET_ACCESS_KEY'] = 'keymaster'
-
-    app.register_blueprint(auth_blueprint)
-
-    return app
-
-
-app = create_app()
