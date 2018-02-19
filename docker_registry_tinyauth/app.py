@@ -1,10 +1,4 @@
-from datetime import datetime, timedelta
-import json
-from uuid import uuid4
-
-from flask import Blueprint, Flask, Response, current_app, jsonify, request
-from flask_tinyauth import api
-import jwt
+from flask import Flask
 
 from docker_registry_tinyauth.views import token_blueprint
 

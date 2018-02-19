@@ -2,7 +2,6 @@ import re
 
 from flask import request
 
-
 SCOPE_RE = re.compile(r'^(?P<type>repository):(?P<name>[^:]+)(?::(?P<tag>[^:]))?:(?P<actions>.*)$')
 
 

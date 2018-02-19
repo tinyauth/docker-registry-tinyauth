@@ -1,14 +1,16 @@
 import datetime
-import json
 from uuid import uuid4
 
-from flask import Blueprint, Flask, Response, current_app, jsonify, request
-from flask_tinyauth import api
 import jwt
+from flask import Blueprint, current_app, jsonify, request
+from flask_tinyauth import api
 
-from docker_registry_tinyauth.pki import serialize_cert, get_certificate, get_private_key
+from docker_registry_tinyauth.pki import (
+    get_certificate,
+    get_private_key,
+    serialize_cert,
+)
 from docker_registry_tinyauth.scope import get_scopes
-
 
 token_blueprint = Blueprint('auth', __name__)
 
@@ -67,29 +69,29 @@ def get_token_for_request():
     expires = now + datetime.timedelta(seconds=current_app.config['EXPIRES_IN'])
 
     token_payload = {
-        'iss' : current_app.config['ISSUER'],
-        'sub' : response.get('Identity', ''),
-        'aud' : service,
-        'exp' : expires,
-        'nbf' : now,
-        'iat' : now,
-        'jti' : uuid4().hex,
-        'access' : access,
+        'iss': current_app.config['ISSUER'],
+        'sub': response.get('Identity', ''),
+        'aud': service,
+        'exp': expires,
+        'nbf': now,
+        'iat': now,
+        'jti': uuid4().hex,
+        'access': access,
     }
 
     cert = get_certificate()
 
     response = {
-        'token' : jwt.encode(
+        'token': jwt.encode(
             token_payload,
             get_private_key(),
-            headers = {
+            headers={
                 'x5c': [serialize_cert(cert)],
             },
             algorithm='RS256',
         ).decode('utf-8'),
-        'expires_in' : current_app.config['EXPIRES_IN'],
-        'issued_at' : now.isoformat() + 'Z'
+        'expires_in': current_app.config['EXPIRES_IN'],
+        'issued_at': now.isoformat() + 'Z'
     }
 
     return jsonify(response)

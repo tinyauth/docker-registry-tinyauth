@@ -38,6 +38,7 @@ services:
       dockerfile: docker/auth/Dockerfile
     volumes:
       - certificates:/certificates
+      - .:/app/src
 
   nginx:
     build:
