@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 
 from docker_registry_tinyauth.pki import get_certificate
@@ -10,12 +12,15 @@ def create_app():
     app.config['EXPIRES_IN'] = 3600
     app.config['ISSUER'] = 'tinyauth'
 
-    app.config['TINYAUTH_SERVICE'] = 'docker-registry'
-    app.config['TINYAUTH_REGION'] = 'eu-west-1'
-    app.config['TINYAUTH_PARTITION'] = 'primary'
-    app.config['TINYAUTH_ENDPOINT'] = 'http://tinyauth:5000/'
-    app.config['TINYAUTH_ACCESS_KEY_ID'] = 'gatekeeper'
-    app.config['TINYAUTH_SECRET_ACCESS_KEY'] = 'keymaster'
+    app.config['TINYAUTH_SERVICE'] = os.environ.get('TINYAUTH_SERVICE', 'docker-registry')
+    app.config['TINYAUTH_PARTITION'] = os.environ.get('TINYAUTH_PARTITION', '')
+    app.config['TINYAUTH_REGION'] = os.environ.get('TINYAUTH_REGION', '')
+    app.config['TINYAUTH_ENDPOINT'] = os.environ.get('TINYAUTH_ENDPOINT', '')
+    app.config['TINYAUTH_ACCESS_KEY_ID'] = os.environ.get('TINYAUTH_ACCESS_KEY_ID', '')
+    app.config['TINYAUTH_SECRET_ACCESS_KEY'] = os.environ.get('TINYAUTH_SECRET_ACCESS_KEY', '')
+
+    if 'TINYAUTH_BYPASS' in os.environ:
+        app.config['TINYAUTH_BYPASS'] = True
 
     app.register_blueprint(token_blueprint)
 

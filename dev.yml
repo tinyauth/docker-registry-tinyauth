@@ -43,8 +43,14 @@ services:
       context: .
       dockerfile: docker/auth/Dockerfile-dev
     volumes:
-      - certificates:/certificates
-      - .:/app/src
+    - certificates:/certificates
+    - .:/app/src
+    environment:
+    - TINYAUTH_REGION=eu-west-1
+    - TINYAUTH_PARTITION=primary
+    - TINYAUTH_ENDPOINT=http://tinyauth:5000/
+    - TINYAUTH_ACCESS_KEY_ID=gatekeeper
+    - TINYAUTH_SECRET_ACCESS_KEY=keymaster
 
   nginx:
     build:

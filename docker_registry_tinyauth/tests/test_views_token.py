@@ -8,11 +8,26 @@ class TestIssueToken(base.TestCase):
 
     def setUp(self):
         super().setUp()
+
+        self.app.config['TINYAUTH_BYPASS'] = False
+
         self.call = self.patch('flask_tinyauth.api.call')
 
         frozen_time = datetime.datetime(2018, 1, 3, 16, 50, 0)
         dt = self.patch('docker_registry_tinyauth.views.token.datetime.datetime')
         dt.utcnow.return_value = frozen_time
+
+    def test_bypass(self):
+        self.app.config['TINYAUTH_BYPASS'] = True
+
+        response = self.client.get('/v2/token?service=docker-registry&client_id=client&scope=repository:samalba/my-app:push')
+
+        assert response.status_code == 200
+
+        payload = json.loads(response.get_data(as_text=True))
+        assert 'token' in payload
+
+        assert self.call.call_count == 0
 
     def test_simple_issue(self):
         self.call.return_value = {
@@ -24,7 +39,7 @@ class TestIssueToken(base.TestCase):
             },
         }
 
-        response = self.client.get('/token?service=docker-registry&client_id=client&scope=repository:samalba/my-app:push')
+        response = self.client.get('/v2/token?service=docker-registry&client_id=client&scope=repository:samalba/my-app:push')
 
         assert response.status_code == 200
 

@@ -44,33 +44,46 @@ def get_token_for_request():
         'RequestDateTime': now.isoformat(),
     }
 
-    response = api.call('authorize-by-token', {
-        'permit': permit,
-        'headers': request.headers.to_wsgi_list(),
-        'context': context,
-    })
-
-    allowed = {}
-    for action, resources in response['Permitted'].items():
-        action = action.split(':', 1)[1]
-        for resource in resources:
-            resource = resource.rsplit(':', 1)[1]
-            allowed.setdefault(resource, []).append(action)
-
-    access = []
-    for resource, actions in allowed.items():
-        resource_type, resource = resource.split('/', 1)
-        access.append({
-            'type': resource_type,
-            'name': resource,
-            'actions': actions,
+    if not current_app.config['TINYAUTH_BYPASS']:
+        response = api.call('authorize-by-token', {
+            'permit': permit,
+            'headers': request.headers.to_wsgi_list(),
+            'context': context,
         })
+
+        allowed = {}
+        for action, resources in response['Permitted'].items():
+            action = action.split(':', 1)[1]
+            for resource in resources:
+                resource = resource.rsplit(':', 1)[1]
+                allowed.setdefault(resource, []).append(action)
+
+        access = []
+        for resource, actions in allowed.items():
+            resource_type, resource = resource.split('/', 1)
+            access.append({
+                'type': resource_type,
+                'name': resource,
+                'actions': actions,
+            })
+
+        identity = response.get('Identity', '')
+
+    else:
+        access = []
+        for scope in get_scopes():
+            access.append({
+                'type': scope['type'],
+                'name': scope['name'],
+                'actions': scope['actions'],
+            })
+        identity = 'root'
 
     expires = now + datetime.timedelta(seconds=current_app.config['EXPIRES_IN'])
 
     token_payload = {
         'iss': current_app.config['ISSUER'],
-        'sub': response.get('Identity', ''),
+        'sub': identity,
         'aud': service,
         'exp': expires,
         'nbf': now,
