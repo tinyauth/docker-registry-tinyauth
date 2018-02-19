@@ -26,16 +26,22 @@ services:
       - 8000:8000
 
   registry:
-    build:
-      context: docker/registry
+    image: registry:2
     volumes:
-      - registry:/registry
-      - certificates:/certificates
+    - registry:/var/lib/registry
+    - certificates:/certificates
+    environment:
+    - REGISTRY_AUTH=token
+    - REGISTRY_AUTH_TOKEN_REALM=https://localhost/auth/v2/token
+    - REGISTRY_AUTH_TOKEN_SERVICE=docker-registry
+    - REGISTRY_AUTH_TOKEN_ISSUER=tinyauth
+    - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/certificates/server.pem
+    - REGISTRY_HTTP_ADDR=0.0.0.0:5000
 
   auth:
     build:
       context: .
-      dockerfile: docker/auth/Dockerfile
+      dockerfile: docker/auth/Dockerfile-dev
     volumes:
       - certificates:/certificates
       - .:/app/src

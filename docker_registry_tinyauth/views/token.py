@@ -15,7 +15,7 @@ from docker_registry_tinyauth.scope import get_scopes
 token_blueprint = Blueprint('auth', __name__)
 
 
-@token_blueprint.route('/token')
+@token_blueprint.route('/v2/token')
 def get_token_for_request():
     try:
         service = request.args['service']
