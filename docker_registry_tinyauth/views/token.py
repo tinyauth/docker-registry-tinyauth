@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+import datetime
 import json
 from uuid import uuid4
 
@@ -27,7 +27,7 @@ def get_token_for_request():
         response.status_code = 400
         return response
 
-    now = datetime.utcnow()
+    now = datetime.datetime.utcnow()
 
     permit = {}
     for scope in get_scopes():
@@ -64,7 +64,7 @@ def get_token_for_request():
             'actions': actions,
         })
 
-    expires = now + timedelta(seconds=current_app.config['EXPIRES_IN'])
+    expires = now + datetime.timedelta(seconds=current_app.config['EXPIRES_IN'])
 
     token_payload = {
         'iss' : current_app.config['ISSUER'],

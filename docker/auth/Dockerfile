@@ -16,5 +16,8 @@ COPY docker_registry_tinyauth /app/src/docker_registry_tinyauth
 ENV FLASK_APP=/app/src/docker_registry_tinyauth/app.py
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH $PYTHONPATH:/app/src
+ENV PATH /app/bin/path:$PATH
+
+WORKDIR /app/src
 
 CMD ["/app/bin/flask", "run", "--host=0.0.0.0"]

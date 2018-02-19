@@ -1,0 +1,18 @@
+language: python
+python:
+  - "3.6"
+
+sudo: false
+
+cache: pip
+
+install:
+  - pip install -U pip setuptools wheel
+  - pip install -r requirements.txt
+
+script:
+  - py.test --cov=. docker_registry_tinyauth
+  - flake8 docker_registry_tinyauth
+
+after_success:
+  - codecov
