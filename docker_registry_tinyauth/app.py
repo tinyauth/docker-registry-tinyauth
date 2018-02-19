@@ -1,5 +1,6 @@
 from flask import Flask
 
+from docker_registry_tinyauth.pki import get_certificate
 from docker_registry_tinyauth.views import token_blueprint
 
 
@@ -17,6 +18,9 @@ def create_app():
     app.config['TINYAUTH_SECRET_ACCESS_KEY'] = 'keymaster'
 
     app.register_blueprint(token_blueprint)
+
+    with app.app_context():
+        get_certificate()
 
     return app
 
