@@ -18,9 +18,7 @@ def create_app():
     app.config['TINYAUTH_ENDPOINT'] = os.environ.get('TINYAUTH_ENDPOINT', '')
     app.config['TINYAUTH_ACCESS_KEY_ID'] = os.environ.get('TINYAUTH_ACCESS_KEY_ID', '')
     app.config['TINYAUTH_SECRET_ACCESS_KEY'] = os.environ.get('TINYAUTH_SECRET_ACCESS_KEY', '')
-
-    if 'TINYAUTH_BYPASS' in os.environ:
-        app.config['TINYAUTH_BYPASS'] = True
+    app.config['TINYAUTH_BYPASS'] = 'TINYAUTH_BYPASS' in os.environ
 
     app.register_blueprint(token_blueprint)
 
