@@ -33,7 +33,7 @@ class TestIssueToken(base.TestCase):
         self.call.return_value = {
             'Identity': 'root',
             'Permitted': {
-                'test:push': [
+                'push': [
                     ':repository/sambalba/my-app',
                 ]
             },

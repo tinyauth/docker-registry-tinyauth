@@ -53,7 +53,6 @@ def get_token_for_request():
 
         allowed = {}
         for action, resources in response['Permitted'].items():
-            action = action.split(':', 1)[1]
             for resource in resources:
                 resource = resource.rsplit(':', 1)[1]
                 allowed.setdefault(resource, []).append(action)
