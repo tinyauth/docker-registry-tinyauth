@@ -34,7 +34,7 @@ def get_token_for_request():
     permit = {}
     for scope in get_scopes():
         for action in scope['actions']:
-            res = permit.setdefault(':'.join((service, action)), set())
+            res = permit.setdefault(action, set())
             res.add(api.format_arn(scope['type'], scope['name']))
     for key in permit:
         permit[key] = list(permit[key])

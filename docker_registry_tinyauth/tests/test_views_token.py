@@ -48,7 +48,7 @@ class TestIssueToken(base.TestCase):
 
         self.call.assert_called_with('authorize-by-token', {
             'permit': {
-                'docker-registry:push': [
+                'push': [
                     'arn:primary:docker-registry:eu-west-1::repository/samalba/my-app'
                 ]
             },
